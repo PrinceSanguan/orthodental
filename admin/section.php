@@ -294,50 +294,50 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
                     </tr>
                   </thead>
                  <tbody>		
-	           <?php
-$q_e = $conn->query("SELECT * FROM `appointment_desc` WHERE `appointment_status`='Pending' ");
-while ($f_e = $q_e->fetch_array()) {
-    $u_id_user = $f_e['appointment_id'];
-    $original_date_time = $f_e['appointment_date'];
-    $cleaned_date_time = str_replace(" - ", " ", $original_date_time);
-                
-    // Convert to 12-hour format for display
-    $time_12hr_format = date("g:i A", strtotime($cleaned_date_time));
-    $converted_datetime = date("Y-m-d H:i:s", strtotime($cleaned_date_time));
+                 <?php
+    $q_e = $conn->query("SELECT * FROM appointment_desc WHERE appointment_status='Pending'");
+    while ($f_e = $q_e->fetch_array()) {
+        $u_id_user = $f_e['appointment_id'];
+        $original_date_time = $f_e['appointment_date'];
+        $cleaned_date_time = str_replace(" - ", " ", $original_date_time);
+        $time_12hr_format = date("g:i A", strtotime($cleaned_date_time));
+        $converted_datetime = date("Y-m-d H:i:s", strtotime($cleaned_date_time));
 
-    $q2 = $conn->query("SELECT * FROM `user_account1` WHERE `u_id` = '$u_id_user'");
-    $f2 = $q2->fetch_array();
-    
-    $appointment_services = explode(",", $f_e['appointment_desc']); // Split the services string into an array
-    $services_display = [];
-    $services_cost = 0;
+        $q2 = $conn->query("SELECT * FROM user_account1 WHERE u_id = '$u_id_user'");
+        $f2 = $q2->fetch_array();
 
-    foreach ($appointment_services as $service_id) {
-        $q3 = $conn->query("SELECT * FROM `services` WHERE `services_id` = '$service_id'");
-        $f3 = $q3->fetch_array();
-        
-        if ($f3) {
-            $services_display[] = $f3['services_name']; // Store the service name
-            $services_cost += $f3['services_cost']; // Sum up the costs
+        $appointment_services = explode(",", $f_e['appointment_desc']);
+        $services_display = [];
+        $services_cost = 0;
+
+        foreach ($appointment_services as $service_id) {
+            $q3 = $conn->query("SELECT * FROM services WHERE services_id = '$service_id'");
+            $f3 = $q3->fetch_array();
+
+            if ($f3) {
+                $services_display[] = $f3['services_name'];
+                $services_cost += $f3['services_cost'];
+            }
         }
-    }
-    ?>
-					<tr>
-          <td style="text-size:8px;text-transform:capitalize;"><?php echo $f2['fname']." ".$f2['mname']." ".$f2['lname'];?></td>    
-          <td style="text-size:8px;text-transform:capitalize;"><?php echo implode(", ", $services_display); // Display all service names ?></td>        
-          <td style="text-size:8px;text-transform:capitalize;"><?php echo $services_cost; // Display total cost ?></td>
-          <td><?php echo date("l, F j, Y", strtotime($cleaned_date_time))?></td>
-          <td><?php echo $time_12hr_format?></td>
-          <td><?php echo $f_e['appointment_status'] ?></td>
-        <td id="printPageButton">
-            <a href="#" class="btn-warning btn-m btn" data-toggle="modal" data-target="#historyModal<?php echo $u_id_user; ?>">View</a>
-            <a href="section.php?id_data_update=<?php echo $f_e['appointment_desc_id']; ?>&update=Approved" class="btn-success btn-m btn">Approve</a>
-            
-            <a href="#" class="btn-info btn-m btn" data-toggle="modal" data-target="#rescheduleModal-<?php echo $f_e['appointment_desc_id']; ?>">Re Schedule</a>
-            <a href="section.php?id_data_update=<?php echo $f_e['appointment_desc_id']; ?>&update=Cancelled" class="btn-danger btn-m btn">Cancel</a>
-            
-        </td>
-    </tr>
+?>
+<tr>
+    <td style="text-size:8px;text-transform:capitalize;"><?php echo $f2['fname']." ".$f2['mname']." ".$f2['lname']; ?></td>    
+    <td style="text-size:8px;text-transform:capitalize;"><?php echo implode(", ", $services_display); ?></td>        
+    <td style="text-size:8px;text-transform:capitalize;"><?php echo $services_cost; ?></td>
+    <td><?php echo date("l, F j, Y", strtotime($cleaned_date_time)); ?></td>
+    <td><?php echo $time_12hr_format; ?></td>
+    <td><?php echo $f_e['appointment_status']; ?></td>
+    <td id="printPageButton">
+        <a href="#" class="btn-warning btn-m btn" data-toggle="modal" data-target="#historyModal<?php echo $u_id_user; ?>">View</a>
+        <a href="section.php?id_data_update=<?php echo $f_e['appointment_desc_id']; ?>&update=Approved" class="btn-success btn-m btn">Approve</a>
+        <a href="#" class="btn-info btn-m btn" data-toggle="modal" data-target="#rescheduleModal-<?php echo $f_e['appointment_desc_id']; ?>">Re Schedule</a>
+        <a href="section.php?id_data_update=<?php echo $f_e['appointment_desc_id']; ?>&update=Cancelled" class="btn-danger btn-m btn">Cancel</a>
+        <!-- Notify Button -->
+        <a href="send_notification.php?user_id=<?php echo $u_id_user; ?>" class="btn-primary btn-m btn">Notify</a>
+    </td>
+</tr>
+
+    
     <!-- Modal outside the loop -->
     <div id="rescheduleModal-<?php echo $f_e['appointment_desc_id']; ?>" class="modal fade" role="dialog">
        

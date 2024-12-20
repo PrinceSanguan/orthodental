@@ -164,64 +164,88 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
-        <form  method="post" enctype = "multipart/form-data" action = "<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" style="margin-top:50px;">
-        <div class="modal-body">
-                <div class = "form-group row">
-                    <div class="col-sm-6 mb-3 mb-sm-0">
-                        <label>Book Date</label>
-                        <input type="date" class="form-control form-control-user" id="datepicker" name = "date"  autofocus min="<?php echo date('m-Y-d')?>" required>
-                        <input type="hidden" class="form-control form-control-user" name = "user_id"  autofocus value="<?php echo $u_id?>" required>
-                    </div>   
-                    <div class="col-sm-6 mb-3 mb-sm-0">
-                        <label>Select Time Schedule</label>
-                        <select name="schedule_time" class="form-control" required>
-                            <option value="">Please Time Schedule</option>
-                            <?php 
-                                for ($i = 8; $i <= 17; $i++) {
-                                    // Determine the period (AM/PM)
-                                    $period = $i < 12 ? 'AM' : 'PM';
-                                    // Convert hour to 12-hour format
-                                    $hour = $i % 12;
-                                    $hour = $hour ? $hour : 12; // Handle 0 hour as 12
+        <form method="post" enctype="multipart/form-data" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" style="margin-top:50px;">
+    <div class="modal-body">
+        <div class="form-group row">
+            <div class="col-sm-6 mb-3 mb-sm-0">
+                <label>Book Date</label>
+                <input type="date" class="form-control form-control-user" id="datepicker" name="date" autofocus min="<?php echo date('Y-m-d'); ?>" required>
+                <input type="hidden" class="form-control form-control-user" name="user_id" autofocus value="<?php echo $u_id; ?>" required>
+            </div>
+            <div class="col-sm-6 mb-3 mb-sm-0">
+                <label>Select Time Schedule</label>
+                <select name="schedule_time" class="form-control" required>
+                    <option value="">Please Time Schedule</option>
+                    <?php for ($i = 8; $i <= 17; $i++) {
+                        $period = $i < 12 ? 'AM' : 'PM';
+                        $hour = $i % 12;
+                        $hour = $hour ? $hour : 12;
+                        $timeString = sprintf('%02d:00 %s', $hour, $period);
+                    ?>
+                        <option value="<?php echo sprintf('%02d:00', $i); ?>"><?php echo $timeString; ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+        </div>
 
-                                    // Format the time string
-                                    $timeString = sprintf('%02d:00 %s', $hour, $period);
-                            ?>
-                                <option value="<?php echo sprintf('%02d:00', $i); ?>"><?php echo $timeString; ?></option>
-                            <?php } ?>
-                        </select> 
-                    </div>  
-                </div>
-
-                <div class="form-group row">
-                    <div class="col-sm-12 mb-3 mb-sm-0">
-                        <label>Service List</label>
+        <div class="form-group row">
+            <div class="col-sm-12 mb-3 mb-sm-0">
+                <label>Service List</label>
+                <div class="form-check">
+                    <?php $q_e = $conn->query("SELECT * FROM `services` WHERE `services_status`='0'");
+                    while ($f_e = $q_e->fetch_array()) { ?>
                         <div class="form-check">
-                            <?php
-                                $q_e = $conn->query("SELECT * FROM `services` WHERE `services_status`='0'");
-                                while($f_e = $q_e->fetch_array()) {
-                            ?>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="services[]" value="<?php echo $f_e['services_id']; ?>" id="service-<?php echo $f_e['services_id']; ?>">
-                                <label class="form-check-label" for="service-<?php echo $f_e['services_id']; ?>" style="text-transform:capitalize;">
-                                    <?php 
-                                    echo $f_e['services_name']; 
-                                    // echo $f_e['services_name'] . " - ₱" . number_format($f_e['services_cost'], 2);
-                                    ?>
-                                    
-                                </label>
-                            </div>
-                            <?php } ?>
+                            <input class="form-check-input" type="checkbox" name="services[]" value="<?php echo $f_e['services_id']; ?>" id="service-<?php echo $f_e['services_id']; ?>">
+                            <label class="form-check-label" for="service-<?php echo $f_e['services_id']; ?>" style="text-transform:capitalize;">
+                                <?php echo $f_e['services_name']; ?>
+                            </label>
                         </div>
-                    </div>
+                    <?php } ?>
                 </div>
-                <small class="form-text  fst-italic text-danger ">Price may vary depends on the teeth condition</small>
+            </div>
         </div>
-        <div class="modal-footer">
-            <button  class="btn btn-secondary"  data-bs-dismiss="modal" aria-label="Close">Close</button>
-            <button  class="btn btn-danger" name="Send">Book An Appointment</button>
+        <small class="form-text fst-italic text-danger">Price may vary depends on the teeth condition</small>
+
+        <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="terms" required>
+            <label class="form-check-label" for="terms">
+                I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
+            </label>
         </div>
-        </form>
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Close</button>
+        <button class="btn btn-danger" name="Send">Book An Appointment</button>
+    </div>
+</form>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please read the following terms and conditions carefully before booking:</p>
+                <ul>
+                    <li>Appointments are subject to availability and confirmation.</li>
+                    <li>Cancellations or changes must be made at least 24 hours in advance.</li>
+                    <li>Prices may vary depending on the condition of the teeth and the services required.</li>
+                    <li>Late arrivals may result in rescheduling or reduced service time.</li>
+                    <li>Payment is required at the time of service unless otherwise arranged.</li>
+                </ul>
+                <p>By agreeing to these terms, you confirm your understanding and acceptance.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
         <?php 
        if(isset($_POST['Send'])){
