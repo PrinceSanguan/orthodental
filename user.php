@@ -166,6 +166,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 
         <form method="post" enctype="multipart/form-data" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" style="margin-top:50px;">
     <div class="modal-body">
+        <!-- Existing Form Fields -->
         <div class="form-group row">
             <div class="col-sm-6 mb-3 mb-sm-0">
                 <label>Book Date</label>
@@ -205,6 +206,34 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
             </div>
         </div>
         <small class="form-text fst-italic text-danger">Price may vary depends on the teeth condition</small>
+
+        <!-- New Health Declaration Section -->
+        <div class="form-group mt-4">
+            <label><strong>Health Declaration</strong></label>
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="radio" name="feeling_well" value="yes" id="feeling_well_yes"
+                    onclick="this.value = this.checked ? 'yes' : 'no'">
+                <span> Are you currently feeling well or experiencing any illness?</span>
+            </div>
+
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="radio" name="fever_cough" value="yes" id="fever_cough_yes"
+                    onclick="this.value = this.checked ? 'yes' : 'no'">
+                <span> Do you have a fever, cough, sore throat, or shortness of breath?</span>
+            </div>
+
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="radio" name="nausea" value="yes" id="nausea_yes"
+                    onclick="this.value = this.checked ? 'yes' : 'no'">
+                <span> Have you experienced nausea, vomiting, or diarrhea in the past 48 hours?</span>
+            </div>
+
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="radio" name="tooth_gum_pain" value="yes" id="tooth_gum_pain_yes"
+                    onclick="this.value = this.checked ? 'yes' : 'no'">
+                <span> Do you currently have any tooth or gum pain?</span>
+            </div>
+        </div>
 
         <div class="form-check mt-3">
             <input class="form-check-input" type="checkbox" id="terms" required>
@@ -247,55 +276,84 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 </div>
 
 
-        <?php 
-       if(isset($_POST['Send'])){
-        $schedule_time = $_POST['schedule_time'];
-        $date = $_POST['date'] . " - " . $schedule_time; // Combine date and time
-        $user_id = $_POST['user_id'];
-        $services = implode(',', $_POST['services'] ?? []); // Handle multiple selected services as a comma-separated string
+<?php
+if(isset($_POST['Send'])){
+    $schedule_time = $_POST['schedule_time'];
+    $date = $_POST['date'] . " - " . $schedule_time; // Combine date and time
+    $user_id = $_POST['user_id'];
+    $services = implode(',', $_POST['services'] ?? []); // Handle multiple selected services
     
-        // Query to check if the specific date and time are already booked
-        $q1 = $conn->query("SELECT COUNT(*) FROM `appointment_desc` WHERE `appointment_date` = '$date'");
-        $f1 = $q1->fetch_array(MYSQLI_NUM);
-        $count_time = $f1[0]; // Check how many records match this condition
+    // Get health screening answers
+    $feeling_well = $_POST['feeling_well'];
+    $fever_cough = $_POST['fever_cough'];
+    $nausea = $_POST['nausea'];
+    $tooth_gum_pain = $_POST['tooth_gum_pain'];
     
-        // If the specific time is already booked, show an error message
-        if($count_time > 0){
+    // Query to check if the specific date and time are already booked
+    $q1 = $conn->query("SELECT COUNT(*) FROM `appointment_desc` WHERE `appointment_date` = '$date'");
+    $f1 = $q1->fetch_array(MYSQLI_NUM);
+    $count_time = $f1[0];
+    
+    // If the specific time is already booked, show an error message
+    if($count_time > 0){
+        echo '<script>
+            swal({
+                title: "Time Conflict!",
+                text: "This time slot is already booked. Please choose another time.",
+                icon: "error",
+                button: "Ok"
+            });
+        </script>';
+    } else {
+        // Proceed to insert the new appointment with health screening data
+        $sql_sched1 = "INSERT INTO appointment_desc (
+            appointment_id, 
+            appointment_desc, 
+            appointment_date, 
+            why, 
+            appointment_update_by, 
+            appointment_status,
+            feeling_well,
+            fever_cough,
+            nausea,
+            tooth_gum_pain
+        ) VALUES (
+            '$user_id', 
+            '$services', 
+            '$date', 
+            '', 
+            '', 
+            'Pending',
+            '$feeling_well',
+            '$fever_cough',
+            '$nausea',
+            '$tooth_gum_pain'
+        )";
+        
+        if (mysqli_query($conn, $sql_sched1)){
             echo '<script>
                 swal({
-                    title: "Time Conflict!",
-                    text: "This time slot is already booked. Please choose another time.",
+                    title: "Success!",
+                    text: "Your booking request was submitted successfully!",
+                    icon: "success",
+                    type: "success"
+                }).then(function() {
+                    window.location = "home.php";
+                });
+            </script>';
+        } else {
+            echo '<script>
+                swal({
+                    title: "Failed!",
+                    text: "Please try again",
                     icon: "error",
                     button: "Ok"
                 });
             </script>';
-        } else {
-            // Proceed to insert the new appointment
-            $sql_sched1 = "INSERT INTO appointment_desc VALUES(null, '$user_id', '$services', '$date', '', '', 'Pending')";
-            if (mysqli_query($conn, $sql_sched1)){
-                echo '<script>
-                    swal({
-                        title: "Success!",
-                        text: "Your booking request was submitted successfully!",
-                        icon: "success",
-                        type: "success"
-                    }).then(function() {
-                        window.location = "home.php";
-                    });
-                </script>';
-            } else {
-                echo '<script>
-                    swal({
-                        title: "Failed!",
-                        text: "Please try again",
-                        icon: "error",
-                        button: "Ok"
-                    });
-                </script>';
-            }
         }
     }
-    ?>
+}
+?>
       </div>
     </div>
     </div>
