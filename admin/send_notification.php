@@ -8,7 +8,7 @@ use PHPMailer\PHPMailer\Exception;
 
 if (isset($_GET['user_id'])) {
     $user_id = $_GET['user_id'];
-    $conn = new mysqli('localhost', 'root', '', 'onopack_asdasdsa'); // Update with your DB details
+    $conn = new mysqli('localhost', 'root', '', 'onopack_asdasdsa'); 
 
     $user_query = $conn->query("SELECT * FROM user_account1 WHERE u_id = '$user_id'");
     $appointment_query = $conn->query("SELECT * FROM appointment_desc WHERE appointment_id = '$user_id' AND appointment_status = 'Pending'");
@@ -54,7 +54,7 @@ if (isset($_GET['user_id'])) {
             echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
         }
     } else {
-        echo "Invalid user or no pending appointment.";
+        echo "Invalid user or no pending appointment in applicant.";
     }
 }
 ?>
