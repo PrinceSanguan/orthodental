@@ -227,7 +227,6 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     </div>
 </aside>
 
-
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
   <div class="head"> <!--NAVBAR FOR PRINT-->
@@ -361,7 +360,6 @@ while ($f_e = $q_e->fetch_array()) {
 <?php
 ?>
 
-    
     <!-- Modal outside the loop -->
     <div id="rescheduleModal-<?php echo $f_e['appointment_desc_id']; ?>" class="modal fade" role="dialog">
        
